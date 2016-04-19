@@ -7,7 +7,6 @@ from django.utils.translation import ugettext as _
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from django.views.decorators.cache import never_cache
 
 from django_messages.models import Message
 from django_messages.forms import ComposeForm
@@ -20,7 +19,6 @@ if "notification" in settings.INSTALLED_APPS and getattr(settings, 'DJANGO_MESSA
 else:
     notification = None
 
-@never_cache
 @login_required
 def inbox(request, template_name='django_messages/inbox.html'):
     """
@@ -33,7 +31,6 @@ def inbox(request, template_name='django_messages/inbox.html'):
         'message_list': message_list,
     }, context_instance=RequestContext(request))
 
-@never_cache
 @login_required
 def outbox(request, template_name='django_messages/outbox.html'):
     """
@@ -46,7 +43,6 @@ def outbox(request, template_name='django_messages/outbox.html'):
         'message_list': message_list,
     }, context_instance=RequestContext(request))
 
-@never_cache
 @login_required
 def trash(request, template_name='django_messages/trash.html'):
     """
@@ -82,7 +78,7 @@ def compose(request, recipient=None, form_class=ComposeForm,
             form.save(sender=request.user)
             messages.info(request, _(u"Message successfully sent."))
             if success_url is None:
-                success_url = reverse('messages:messages_inbox')
+                success_url = reverse('messages_inbox')
             if 'next' in request.GET:
                 success_url = request.GET['next']
             return HttpResponseRedirect(success_url)
@@ -93,7 +89,6 @@ def compose(request, recipient=None, form_class=ComposeForm,
             form.fields['recipient'].initial = recipients
     return render_to_response(template_name, {
         'form': form,
-        'recipient': recipient
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -120,7 +115,7 @@ def reply(request, message_id, form_class=ComposeForm,
             form.save(sender=request.user, parent_msg=parent)
             messages.info(request, _(u"Message successfully sent."))
             if success_url is None:
-                success_url = reverse('messages:messages_inbox')
+                success_url = reverse('messages_inbox')
             return HttpResponseRedirect(success_url)
     else:
         form = form_class(initial={
@@ -130,7 +125,6 @@ def reply(request, message_id, form_class=ComposeForm,
             })
     return render_to_response(template_name, {
         'form': form,
-        'recipient': parent.sender,
     }, context_instance=RequestContext(request))
 
 @login_required
@@ -151,7 +145,7 @@ def delete(request, message_id, success_url=None):
     message = get_object_or_404(Message, id=message_id)
     deleted = False
     if success_url is None:
-        success_url = reverse('messages:messages_inbox')
+        success_url = reverse('messages_inbox')
     if 'next' in request.GET:
         success_url = request.GET['next']
     if message.sender == user:
@@ -178,7 +172,7 @@ def undelete(request, message_id, success_url=None):
     message = get_object_or_404(Message, id=message_id)
     undeleted = False
     if success_url is None:
-        success_url = reverse('messages:messages_inbox')
+        success_url = reverse('messages_inbox')
     if 'next' in request.GET:
         success_url = request.GET['next']
     if message.sender == user:
@@ -195,7 +189,6 @@ def undelete(request, message_id, success_url=None):
         return HttpResponseRedirect(success_url)
     raise Http404
 
-@never_cache
 @login_required
 def view(request, message_id, form_class=ComposeForm, quote_helper=format_quote,
         subject_template=_(u"Re: %(subject)s"),
