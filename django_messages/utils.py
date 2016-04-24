@@ -73,9 +73,9 @@ def new_message_email(sender, instance, signal,
 
     if 'created' in kwargs and kwargs['created']:
         try:
-            actually_send = bool(instance.recipient.receive_emails)
+            subscribed = bool(instance.recipient.receive_emails)
         except:
-            actually_send = True
+            subscribed = True
         try:
             current_domain = Site.objects.get_current().domain
             subject = subject_prefix % {'subject': instance.subject}
@@ -83,7 +83,7 @@ def new_message_email(sender, instance, signal,
                 'site_url': '%s://%s' % (default_protocol, current_domain),
                 'message': instance,
             })
-            if instance.recipient.email != "" and actually_send:
+            if instance.recipient.email != "" and subscribed:
                 send_mail(subject, message, settings.DEFAULT_FROM_EMAIL,
                     [instance.recipient.email,])
         except Exception as e:
